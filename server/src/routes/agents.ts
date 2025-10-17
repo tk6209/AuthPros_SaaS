@@ -13,6 +13,33 @@ agentRouter.get('/', requireAuth, async (_req, res) => {
   res.json({ agents });
 });
 
+// List chat sessions for current user (optionally by agent)
+agentRouter.get('/sessions', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.userId!;
+  const agentId = typeof req.query.agentId === 'string' ? req.query.agentId : undefined;
+  const where = agentId ? { userId, agentId } : { userId };
+  const sessions = await prisma.chatSession.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, agentId: true, createdAt: true },
+  });
+  res.json({ sessions });
+});
+
+// Get chat history by sessionId
+agentRouter.get('/history', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.userId!;
+  const sessionId = typeof req.query.sessionId === 'string' ? req.query.sessionId : undefined;
+  if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
+  const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const history = await prisma.chatMessage.findMany({
+    where: { sessionId },
+    orderBy: { createdAt: 'asc' },
+  });
+  res.json({ sessionId, history });
+});
+
 const messageSchema = z.object({
   agentId: z.string().uuid(),
   sessionId: z.string().uuid().optional(),

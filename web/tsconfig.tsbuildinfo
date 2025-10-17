@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/components/AgentList.tsx","./src/components/ChatPanel.tsx","./src/pages/AgentsPage.tsx","./src/pages/LoginPage.tsx","./src/pages/RegisterPage.tsx","./src/state/auth.tsx"],"version":"5.6.3"}
